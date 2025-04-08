@@ -50,10 +50,16 @@ export const actualizarProducto = async (id, productoData) => {
 // ✅ Eliminar producto
 export const deleteProducto = async (id) => {
   try {
+    console.log(`Enviando solicitud DELETE a ${VITE_API_URL}/productos/${id}`);
     const response = await axios.delete(`${VITE_API_URL}/productos/${id}`);
+    console.log("Respuesta recibida:", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error al eliminar producto:", error);
+    console.error("Error completo:", error);
+    if (error.response) {
+      console.error("Datos de respuesta:", error.response.data);
+      console.error("Estado:", error.response.status);
+    }
     throw error;
   }
 };

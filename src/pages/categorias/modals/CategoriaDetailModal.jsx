@@ -24,13 +24,14 @@ const CategoriaDetailModal = ({ categoria, onClose, onEdit }) => {
     { label: "Descripción", value: categoria.descripcion || "Sin descripción" },
     {
       label: "Fecha de Creación",
-      value: formatDate(categoria.fechaCreacion),
+      value: formatDate(categoria.createdAt),
     },
     {
       label: "Estado",
-      value: categoria.estado,
-      className: `font-medium capitalize ${categoria.estado === "activo" ? "text-green-400" : "text-red-400"}`,
+      value: categoria.estado ? "Activo":"Inactivo",
+      className: `font-medium capitalize ${categoria.estado ? "text-green-400" : "text-red-400"}`,
     },
+    
   ]
 
   // Componente para cada campo de detalle

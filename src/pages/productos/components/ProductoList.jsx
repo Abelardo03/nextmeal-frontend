@@ -17,35 +17,40 @@ const ProductList = ({ productos, onEdit, onRefresh }) => {
   }
 
   const handleDeleteClick = (producto) => {
-    setSelectedProducto(producto)
+    setSelectedProducto({ ...producto, id: Number(producto.id) })
     setShowDeleteModal(true)
   }
 
+
+  
+  
   const handleConfirmDelete = async () => {
     try {
-      await deleteProducto(selectedProducto.id)
-      onRefresh()
+      if (!selectedProducto?.id) {
+        console.error("ID no definido al eliminar producto");
+        return;
+      }
+      
+      console.log("Intentando eliminar producto con ID:", selectedProducto.id);
+      await deleteProducto(Number(selectedProducto.id));
+      console.log("Producto eliminado exitosamente");
+      
+      onRefresh(); // Actualiza la lista después de eliminar
     } catch (error) {
-      console.error("Error al eliminar producto:", error)
-      // Puedes mostrar un toast/alert de error aquí si lo deseas
+      console.error("Error al eliminar producto:", error.response ? error.response.data : error);
+      // Puedes mostrar un mensaje de error al usuario aquí
     } finally {
-      setShowDeleteModal(false)
+      setShowDeleteModal(false);
     }
-  }
-
-  if (!Array.isArray(productos)) {
-    console.error("Error: productos no es un array", productos)
-    return <p className="text-red-500">Error al cargar los productos.</p>
-  }
-
+  };
   return (
     <>
       {productos.length > 0 ? (
         productos.map((producto) => (
           <div key={producto.id} className="p-4 bg-gray-800 rounded-lg mb-2">
             <div className="flex items-start justify-between">
-              <div 
-                className="flex-1 cursor-pointer" 
+              <div
+                className="flex-1 cursor-pointer"
                 onClick={() => handleViewClick(producto)}
               >
                 <div className="flex items-center gap-2">
@@ -112,12 +117,13 @@ const ProductList = ({ productos, onEdit, onRefresh }) => {
           itemName="producto"
           itemField="nombre"
           warningMessage={
-            selectedProducto?.categoria 
+            selectedProducto?.categoria
               ? `Se eliminará el producto y ya no estará asociado a la categoría ${selectedProducto.categoria.nombre}`
               : undefined
           }
         />
       )}
+
     </>
   )
 }

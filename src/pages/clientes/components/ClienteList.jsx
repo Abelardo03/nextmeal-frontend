@@ -6,7 +6,7 @@ import { deleteCliente, toggleClienteEstado } from "../api/clienteService"
 import ClienteDetailModal from "../modals/ClienteDetailModal"
 import DeleteConfirmModal from "../modals/DeleteConfirmModal"
 
-const ClienteList = ({ clientes = [], onEdit, onDelete, onRefresh }) => {
+const ClienteList = ({ clientes, onEdit, onDelete, onRefresh }) => {
   const [searchTerm, setSearchTerm] = useState("")
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -17,7 +17,7 @@ const ClienteList = ({ clientes = [], onEdit, onDelete, onRefresh }) => {
   const [actionError, setActionError] = useState("")
 
   const itemsPerPage = 5
-  console.log("Clientes:", clientes)
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm)
@@ -26,21 +26,8 @@ const ClienteList = ({ clientes = [], onEdit, onDelete, onRefresh }) => {
     return () => clearTimeout(timer)
   }, [searchTerm])
 
-  // Cuando cambian los clientes, asegurarse de que la página actual sea válida
-  useEffect(() => {
-    if (Array.isArray(clientes) && clientes.length > 0) {
-      const maxPage = Math.ceil(clientes.length / itemsPerPage)
-      if (currentPage > maxPage) {
-        setCurrentPage(maxPage)
-      }
-    }
-  }, [clientes, currentPage, itemsPerPage])
-
-  // Asegurarnos de que clientes sea siempre un array
-  const clientesArray = Array.isArray(clientes) ? clientes : []
-
-  const filteredClientes = clientesArray.filter((cliente) =>
-    [cliente?.nombreCompleto || "", cliente?.documentoIdentidad || "", cliente?.correoElectronico || ""]
+  const filteredClientes = clientes.filter((cliente) =>
+    [cliente.nombreCompleto, cliente.documentoIdentidad, cliente.correoElectronico]
       .join(" ")
       .toLowerCase()
       .includes(debouncedSearchTerm.toLowerCase()),
@@ -61,9 +48,7 @@ const ClienteList = ({ clientes = [], onEdit, onDelete, onRefresh }) => {
       setActionError("")
       console.log("Eliminando cliente:", clienteToDelete)
       await deleteCliente(clienteToDelete.id)
-      if (typeof onDelete === "function") {
-        onDelete()
-      }
+      onDelete()
       setIsDeleting(false)
       setClienteToDelete(null)
     } catch (error) {
@@ -80,9 +65,11 @@ const ClienteList = ({ clientes = [], onEdit, onDelete, onRefresh }) => {
       console.log("Cambiando estado del cliente:", cliente)
       // Ahora pasamos el estado actual como segundo parámetro
       await toggleClienteEstado(cliente.id, cliente.estado)
-      if (typeof onRefresh === "function") {
-        onRefresh()
-      }
+      onRefresh()
+
+      const estadoCambiar = cliente.estado == "activo" ? "inactivo" : "activo"
+      await toggleClienteEstado(cliente.id, {estado:estadoCambiar})
+      onRefresh() // Recargar la lista
     } catch (error) {
       console.error("Error al cambiar estado del cliente:", error)
       setActionError(error.message || "Error al cambiar estado del cliente")
@@ -97,13 +84,6 @@ const ClienteList = ({ clientes = [], onEdit, onDelete, onRefresh }) => {
     // sin hacer nada más que podría interferir con el flujo
     if (onEdit && typeof onEdit === "function") {
       onEdit(cliente)
-    }
-  }
-
-  const handleRefresh = () => {
-    setSearchTerm("")
-    if (typeof onRefresh === "function") {
-      onRefresh()
     }
   }
 
@@ -127,7 +107,10 @@ const ClienteList = ({ clientes = [], onEdit, onDelete, onRefresh }) => {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
         <button
-          onClick={handleRefresh}
+          onClick={() => {
+            setSearchTerm("")
+            onRefresh()
+          }}
           className="p-2 text-gray-400 hover:text-orange-500 transition-colors"
           title="Refrescar"
         >

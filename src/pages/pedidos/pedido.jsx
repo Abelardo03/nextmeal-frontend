@@ -22,7 +22,7 @@ const Pedido = () => {
     try {
       setLoading(true)
       const data = await fetchPedidos()
-      setPedidos(data)
+      setPedidos(data || [])
       setError(null)
     } catch (err) {
       setError("Error al cargar los pedidos: " + (err.message || "Error desconocido"))

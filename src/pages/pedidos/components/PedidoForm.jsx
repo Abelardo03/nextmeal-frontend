@@ -2,10 +2,18 @@
 
 import { useState, useEffect } from "react"
 import { X, ShoppingBag, Plus, Minus } from "lucide-react"
-import { createPedido, updatePedido, fetchClientesPedidos, fetchProductos } from "../api/pedidoservice.js"
+import {
+  createPedido,
+  updatePedido,
+  fetchClientes,
+  fetchProductos,
+} from "../api/pedidoservice.js";
 
-import FormField from "../../clientes/components/form/FormField.jsx"
-import SelectField from "../../clientes/components/form/SelectField.jsx"
+import FormField from "../../clientes/components/form/FormField.jsx";
+import SelectField from "../../clientes/components/form/SelectField.jsx";
+
+
+
 
 const PedidoForm = ({ pedido, onClose, onSave }) => {
   const initialFormData = {
@@ -29,29 +37,12 @@ const PedidoForm = ({ pedido, onClose, onSave }) => {
     const loadData = async () => {
       try {
         setLoading(true)
-        const [clientesData, productosData] = await Promise.all([fetchClientesPedidos(), fetchProductos()])
+        const [clientesData, productosData] = await Promise.all([fetchClientes(), fetchProductos()])
         setClientes(clientesData)
         setProductos(productosData)
       } catch (error) {
         console.error("Error al cargar datos:", error)
-
-        // Añadir más información de diagnóstico
-        if (error.response) {
-          // La solicitud fue realizada y el servidor respondió con un código de estado
-          console.error("Error de respuesta:", {
-            status: error.response.status,
-            data: error.response.data,
-            headers: error.response.headers,
-          })
-        } else if (error.request) {
-          // La solicitud fue realizada pero no se recibió respuesta
-          console.error("Error de solicitud sin respuesta:", error.request)
-        } else {
-          // Algo sucedió durante la configuración de la solicitud
-          console.error("Error de configuración:", error.message)
-        }
-
-        setSubmitError("Error al cargar datos: ")
+        setSubmitError("Error al cargar datos: " + error.message)
       } finally {
         setLoading(false)
       }
@@ -59,6 +50,7 @@ const PedidoForm = ({ pedido, onClose, onSave }) => {
 
     loadData()
   }, [])
+
   // Si hay un pedido para editar, cargar sus datos
   useEffect(() => {
     if (pedido) {
@@ -108,7 +100,6 @@ const PedidoForm = ({ pedido, onClose, onSave }) => {
   const validations = {
     id_cliente: (value) => (!value ? "El cliente es obligatorio" : ""),
     id_producto: (value) => (!value ? "El producto es obligatorio" : ""),
-    cantidad: (value) => (value < 1 ? "La cantidad debe ser al menos 1" : ""),
     direccion_envio: (value) => (!value.trim() ? "La dirección de envío es obligatoria" : ""),
   }
 
@@ -152,8 +143,7 @@ const PedidoForm = ({ pedido, onClose, onSave }) => {
   // Calcular el total estimado
   const calcularTotal = () => {
     if (!selectedProducto) return 0
-    const total = selectedProducto.precio * formData.cantidad
-    return total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+    return selectedProducto.precio * formData.cantidad
   }
 
   if (loading) {
@@ -288,7 +278,7 @@ const PedidoForm = ({ pedido, onClose, onSave }) => {
 
                   <div className="text-right">
                     <p className="text-gray-400 text-sm">Total Estimado:</p>
-                    <p className="text-white font-bold text-lg">${calcularTotal()}</p>
+                    <p className="text-white font-bold text-lg">${calcularTotal().toLocaleString("es-CO")}</p>
                   </div>
                 </div>
               </div>
@@ -328,3 +318,4 @@ const PedidoForm = ({ pedido, onClose, onSave }) => {
 }
 
 export default PedidoForm
+

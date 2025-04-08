@@ -1,6 +1,6 @@
 "use client"
 
-import { Edit, ShoppingBag, Clock, RefreshCw, X } from "lucide-react"
+import { Edit, ShoppingBag, Clock, RefreshCw } from "lucide-react"
 
 const PedidoDetailModal = ({ pedido, onClose, onEdit, onChangeStatus }) => {
   // Función para formatear fecha
@@ -12,11 +12,6 @@ const PedidoDetailModal = ({ pedido, onClose, onEdit, onChangeStatus }) => {
       hour: "2-digit",
       minute: "2-digit",
     })
-  }
-
-  // Función para formatear valores en pesos colombianos
-  const formatearPesosColombianos = (valor) => {
-    return valor.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
   }
 
   // Colores según estado
@@ -37,40 +32,31 @@ const PedidoDetailModal = ({ pedido, onClose, onEdit, onChangeStatus }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-gray-900 p-6 rounded-xl shadow-2xl w-full max-w-md md:max-w-lg border-r-2 border-orange-500 animate-fade-in">
+      <div className="bg-gray-900 p-6 rounded-xl shadow-2xl w-[600px] border-r-2 border-orange-500 animate-fade-in">
         <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-4">
           <h3 className="text-xl font-bold text-white flex items-center">
             <ShoppingBag className="mr-2 text-orange-500" size={20} />
             Pedido #{pedido.id}
           </h3>
-          <div className="flex items-center gap-2">
-            <div
-              className={`px-3 py-1 rounded-full flex items-center gap-1 ${estadoColors[pedido.estado].replace("text-", "bg-").replace("-400", "-900")} bg-opacity-30`}
-            >
-              {estadoIcons[pedido.estado]}
-              <span className={`text-sm font-medium ${estadoColors[pedido.estado]}`}>
-                {pedido.estado.charAt(0).toUpperCase() + pedido.estado.slice(1)}
-              </span>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-white hover:bg-gray-800 p-1 rounded-full transition-colors"
-              title="Cerrar"
-            >
-              <X size={20} />
-            </button>
+          <div
+            className={`px-3 py-1 rounded-full flex items-center gap-1 ${estadoColors[pedido.estado].replace("text-", "bg-").replace("-400", "-900")} bg-opacity-30`}
+          >
+            {estadoIcons[pedido.estado]}
+            <span className={`text-sm font-medium ${estadoColors[pedido.estado]}`}>
+              {pedido.estado.charAt(0).toUpperCase() + pedido.estado.slice(1)}
+            </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-2 gap-6 mb-6">
           <div className="space-y-4">
             <div>
               <p className="text-gray-400 text-sm">Cliente</p>
-              <p className="text-white font-medium">{pedido.Cliente?.nombrecompleto}</p>
+              <p className="text-white font-medium">{pedido.cliente.nombreCompleto}</p>
             </div>
             <div>
               <p className="text-gray-400 text-sm">Teléfono</p>
-              <p className="text-white font-medium">{pedido.Cliente?.telefono}</p>
+              <p className="text-white font-medium">{pedido.cliente.telefono}</p>
             </div>
             <div>
               <p className="text-gray-400 text-sm">Dirección de Envío</p>
@@ -85,16 +71,16 @@ const PedidoDetailModal = ({ pedido, onClose, onEdit, onChangeStatus }) => {
           <div className="space-y-4">
             <div className="bg-gray-800 p-4 rounded-lg border border-gray-700 flex items-start">
               <img
-                src={pedido.producto?.imagen || "/placeholder.svg"}
-                alt={pedido.producto?.nombre}
+                src={pedido.producto.imagen || "/placeholder.svg"}
+                alt={pedido.producto.nombre}
                 className="w-16 h-16 rounded-lg object-cover mr-3"
               />
               <div>
-                <h4 className="text-white font-medium">{pedido.producto?.nombre}</h4>
-                <p className="text-gray-400 text-sm">{pedido.producto?.categoria}</p>
+                <h4 className="text-white font-medium">{pedido.producto.nombre}</h4>
+                <p className="text-gray-400 text-sm">{pedido.producto.categoria}</p>
                 <div className="flex justify-between mt-1">
                   <span className="text-gray-400 text-sm">Precio unitario:</span>
-                  <span className="text-white">${formatearPesosColombianos(pedido.precio_unitario)}</span>
+                  <span className="text-white">${pedido.precio_unitario.toLocaleString("es-CO")}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400 text-sm">Cantidad:</span>
@@ -106,7 +92,7 @@ const PedidoDetailModal = ({ pedido, onClose, onEdit, onChangeStatus }) => {
             <div className="bg-orange-900 bg-opacity-30 p-4 rounded-lg border border-orange-700">
               <div className="flex justify-between items-center">
                 <span className="text-orange-300 font-medium">Total del Pedido:</span>
-                <span className="text-white font-bold text-xl">${formatearPesosColombianos(pedido.total)}</span>
+                <span className="text-white font-bold text-xl">${pedido.total.toLocaleString("es-CO")}</span>
               </div>
             </div>
 
@@ -145,3 +131,4 @@ const PedidoDetailModal = ({ pedido, onClose, onEdit, onChangeStatus }) => {
 }
 
 export default PedidoDetailModal
+

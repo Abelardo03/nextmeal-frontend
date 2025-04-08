@@ -10,6 +10,7 @@ const ClienteForm = ({ cliente, onClose, onSave }) => {
   const initialFormData = {
     nombreCompleto: "",
     tipoDocumento: "cc", // Cambiado a minúsculas para coincidir con el backend
+    tipoDocumento: "cc",
     documentoIdentidad: "",
     correoElectronico: "",
     telefono: "",
@@ -39,6 +40,7 @@ const ClienteForm = ({ cliente, onClose, onSave }) => {
       setFormData({
         nombreCompleto: cliente.nombreCompleto || "",
         tipoDocumento: tipoDoc,
+        tipoDocumento: cliente.tipoDocumento || "cc",
         documentoIdentidad: cliente.documentoIdentidad || "",
         correoElectronico: cliente.correoElectronico || "",
         telefono: cliente.telefono || "",
@@ -163,21 +165,14 @@ const ClienteForm = ({ cliente, onClose, onSave }) => {
     setSubmitError("")
 
     try {
-      let savedCliente;
       if (cliente) {
-        savedCliente = await updateCliente(cliente.id, formData)
+        await updateCliente(cliente.id, formData)
       } else {
         console.log("Datos enviados:", formData)
-        savedCliente = await createCliente(formData)
+        await createCliente(formData)
       }
 
-      // Asegurar que onSave se llame con los datos actualizados del cliente
-      if (typeof onSave === 'function') {
-        onSave(savedCliente);
-      }
-      
-      // Cerrar el formulario después de guardar exitosamente
-      onClose();
+      onSave()
     } catch (error) {
       console.error("Error al guardar cliente:", error)
       // Mostrar el mensaje de error específico
@@ -220,9 +215,14 @@ const ClienteForm = ({ cliente, onClose, onSave }) => {
             value: formData.tipoDocumento,
             error: errors.tipoDocumento,
             options: [
+
               { value: "cc", label: "Cédula de Ciudadanía" },
               { value: "tarjeta identidad", label: "Tarjeta de Identidad" },
               { value: "passport", label: "Pasaporte" },
+              { value: "cc", label: "cc" },
+              { value: "TI", label: "TI" },
+              { value: "Pasaporte", label: "Pasaporte" },
+              { value: "CE", label: "CE" },
             ],
           },
           {
@@ -416,3 +416,4 @@ const ClienteForm = ({ cliente, onClose, onSave }) => {
 }
 
 export default ClienteForm
+

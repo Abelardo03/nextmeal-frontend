@@ -5,12 +5,12 @@ import { X, Save, Tag as TagIcon, Image as ImageIcon } from "lucide-react"
 import FormField from "../componentes/form/FormField"
 import { createCategoria, updateCategoria, fetchCategorias } from "../api/categoriaService"
 
-const CategoriaForm = ({ categoria, onClose, onSuccess }) => {
+const CategoriaForm = ({ categoria, onClose, onSave }) => {
   const initialFormData = {
     nombre: "",
     descripcion: "",
-    imagenUrl: "",
-    estado: "activo",
+    // imagenUrl: "",
+    estado: true,
   }
 
   // Estados para el fetching de categorías existentes
@@ -49,10 +49,10 @@ const CategoriaForm = ({ categoria, onClose, onSuccess }) => {
       setFormData({
         nombre: categoria.nombre || "",
         descripcion: categoria.descripcion || "",
-        imagenUrl: categoria.imagenUrl || "",
-        estado: categoria.estado || "activo",
+        // imagenUrl: categoria.imagenUrl || "",
+        estado: categoria.estado || true,
       })
-      if (categoria.imagenUrl) setImagePreview(categoria.imagenUrl)
+      // if (categoria.imagenUrl) setImagePreview(categoria.imagenUrl)
     }
   }, [categoria])
 
@@ -60,29 +60,30 @@ const CategoriaForm = ({ categoria, onClose, onSuccess }) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }))
+    loadExistingCategorias()
   }
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setImagePreview(reader.result)
-        setFormData((prev) => ({ ...prev, imagenUrl: reader.result }))
-      }
-      reader.readAsDataURL(file)
-    }
-  }
+  // const handleImageChange = (e) => {
+  //   const file = e.target.files[0]
+  //   if (file) {
+  //     const reader = new FileReader()
+  //     reader.onloadend = () => {
+  //       setImagePreview(reader.result)
+  //       setFormData((prev) => ({ ...prev, imagenUrl: reader.result }))
+  //     }
+  //     reader.readAsDataURL(file)
+  //   }
+  // }
 
   const validateForm = () => {
     const newErrors = {}
-    
+
     if (!formData.nombre.trim()) {
       newErrors.nombre = "El nombre es obligatorio"
     } else if (
       existingCategorias.some(
-        (cat) => 
-          cat.nombre.toLowerCase() === formData.nombre.toLowerCase() && 
+        (cat) =>
+          cat.nombre.toLowerCase() === formData.nombre.toLowerCase() &&
           (!categoria || cat.id !== categoria.id)
       )
     ) {
@@ -93,21 +94,32 @@ const CategoriaForm = ({ categoria, onClose, onSuccess }) => {
     return Object.keys(newErrors).length === 0
   }
 
+  const handleToggleStatus = (e) => {
+    const { name, value } = e.target
+    const estado = value=="Activo"?true:false
+    setFormData((prev) => ({ ...prev, [name]: estado }))
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }))
+    loadExistingCategorias()
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     if (!validateForm()) return
 
     setIsSubmitting(true)
     setSubmitError("")
 
     try {
-      if (categoria) {
+      if (categoria.id) {
         await updateCategoria(categoria.id, formData)
+        console.log("Datos actualizando",formData, "ID: ",categoria.id);
+        
       } else {
         await createCategoria(formData)
       }
-      onSuccess() // Esto debería disparar un refetch en el componente padre
+      onSave()
+
     } catch (error) {
       console.error("Error al guardar categoría:", error)
       setSubmitError(error.message || "Error al guardar la categoría")
@@ -161,6 +173,21 @@ const CategoriaForm = ({ categoria, onClose, onSuccess }) => {
               icon={<TagIcon size={18} className="text-orange-400" />}
               disabled={loadingCategorias}
             />
+            <div className="mb-4">
+              <label className="block text-gray-300 mb-1.5 font-medium text-sm">
+                Estado
+              </label>
+              <select
+                name="estado"
+                value={formData.estado?"Activo":"Inactivo"}
+                onChange={handleToggleStatus}
+                className="w-full bg-gray-800 text-white border border-gray-700 rounded-lg p-2"
+                disabled={loadingCategorias || isSubmitting}
+              >
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+              </select>
+            </div>
 
             <FormField
               type="text"
@@ -170,6 +197,8 @@ const CategoriaForm = ({ categoria, onClose, onSuccess }) => {
               onChange={handleChange}
               disabled={loadingCategorias}
             />
+
+
 
             <div className="mb-4">
               <label className="block text-gray-300 mb-1.5 font-medium text-sm">Imagen</label>
@@ -191,7 +220,7 @@ const CategoriaForm = ({ categoria, onClose, onSuccess }) => {
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={handleImageChange}
+                    // onChange={handleImageChange}
                     className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-500 file:text-white hover:file:bg-orange-600 transition-colors"
                     disabled={loadingCategorias || isSubmitting}
                   />
@@ -211,9 +240,8 @@ const CategoriaForm = ({ categoria, onClose, onSuccess }) => {
               </button>
               <button
                 type="submit"
-                className={`px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-2 border border-orange-500 ${
-                  isSubmitting || loadingCategorias ? "opacity-70 cursor-not-allowed" : ""
-                }`}
+                className={`px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-2 border border-orange-500 ${isSubmitting || loadingCategorias ? "opacity-70 cursor-not-allowed" : ""
+                  }`}
                 disabled={isSubmitting || loadingCategorias}
               >
                 {isSubmitting ? (

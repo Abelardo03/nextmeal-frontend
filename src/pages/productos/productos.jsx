@@ -24,7 +24,7 @@ const Producto = () => {
 
   const handleDelete = async (producto) => {
     if (confirm(`¿Eliminar producto "${producto.nombre}"?`)) {
-      await deleteProducto(producto._id)
+      await deleteProducto(producto.id)
       cargarProductos()
     }
   }
@@ -55,9 +55,13 @@ const Producto = () => {
         productos={productos}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onRefresh={cargarProductos}
+
       />
 
       {showForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+
         <ProductoForm
           producto={productoEdit}
           onSave={() => {
@@ -67,6 +71,7 @@ const Producto = () => {
           }}
           onClose={() => setShowForm(false)}
         />
+        </div>
       )}
     </div>
   )

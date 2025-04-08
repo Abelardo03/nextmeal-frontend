@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { Clock, Utensils, CheckCircle, XCircle, X } from "lucide-react"
+import { Clock, Utensils, CheckCircle, XCircle } from "lucide-react"
 
-const CambiarEstadoModal = ({ pedido, onConfirm, onClose, isLoading }) => {
+const CambiarEstadoModal = ({ pedido, onConfirm, onCancel }) => {
   const [selectedEstado, setSelectedEstado] = useState(pedido.estado)
 
   const estados = [
@@ -39,21 +39,14 @@ const CambiarEstadoModal = ({ pedido, onConfirm, onClose, isLoading }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-gray-900 p-6 rounded-xl shadow-2xl max-w-md w-full border-r-2 border-orange-500 animate-fade-in">
-        <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-          <h3 className="text-xl font-bold text-white">Cambiar Estado del Pedido #{pedido.id}</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white hover:bg-gray-800 p-1 rounded-full transition-colors"
-            title="Cerrar"
-          >
-            <X size={20} />
-          </button>
-        </div>
+      <div className="bg-gray-900 p-6 rounded-xl shadow-2xl w-[500px] border-r-2 border-orange-500 animate-fade-in">
+        <h3 className="text-xl font-bold text-white mb-4 border-b border-gray-700 pb-2">
+          Cambiar Estado del Pedido #{pedido.id}
+        </h3>
 
         <p className="text-gray-300 mb-4">
           Selecciona el nuevo estado para el pedido de{" "}
-          <span className="font-semibold text-white">{pedido.Cliente?.nombrecompleto}</span>
+          <span className="font-semibold text-white">{pedido.cliente.nombreCompleto}</span>
         </p>
 
         <div className="grid grid-cols-1 gap-3 mb-6">
@@ -78,26 +71,16 @@ const CambiarEstadoModal = ({ pedido, onConfirm, onClose, isLoading }) => {
 
         <div className="flex justify-end space-x-3">
           <button
-            onClick={onClose}
+            onClick={onCancel}
             className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors border border-gray-700"
           >
             Cancelar
           </button>
           <button
             onClick={() => onConfirm(selectedEstado)}
-            disabled={isLoading}
-            className={`px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors border border-orange-500 ${
-              isLoading ? "opacity-70 cursor-not-allowed" : ""
-            }`}
+            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors border border-orange-500"
           >
-            {isLoading ? (
-              <>
-                <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2 inline-block"></span>
-                Procesando...
-              </>
-            ) : (
-              "Confirmar Cambio"
-            )}
+            Confirmar Cambio
           </button>
         </div>
       </div>
@@ -106,3 +89,4 @@ const CambiarEstadoModal = ({ pedido, onConfirm, onClose, isLoading }) => {
 }
 
 export default CambiarEstadoModal
+

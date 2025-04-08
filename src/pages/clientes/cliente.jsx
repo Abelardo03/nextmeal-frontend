@@ -22,7 +22,7 @@ const Cliente = () => {
     try {
       setLoading(true)
       const data = await fetchClientes()
-      setClientes(data)// Asegurarse de que siempre sea un array
+      setClientes(data.data) // Asegurarse de que siempre sea un array
       setError(null)
     } catch (err) {
       setError("Error al cargar los clientes: " + (err.message || "Error desconocido"))

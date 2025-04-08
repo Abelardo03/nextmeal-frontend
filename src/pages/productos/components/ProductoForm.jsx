@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { Save, X, Loader2 } from "lucide-react"
-import FormField from "../../categorias/componentes/form/FormField"
+import FormField, { TextAreaField } from "../../categorias/componentes/form/FormField"
 import SelectField from "../../categorias/componentes/form/SelectField"
 import { crearProducto, actualizarProducto, fetchCategorias, fetchProductos } from "../api/ProductoService"
 
@@ -9,10 +9,13 @@ const ProductoForm = ({ producto, onSave, onClose }) => {
   // Estados del formulario
   const [formData, setFormData] = useState({
     nombre: producto?.nombre || "",
-    precio: producto?.precio || 0,
-    categoriaId: producto?.categoria?._id || ""
+    precio: producto?.precio || "",
+    estado: producto?.estado || "activo",
+    cantidad: producto?.cantidad || "",
+    descripcion: producto?.descripcion || "",
+    Id_Categoria: producto?.Id_Categoria || ""
   })
-
+  
   // Estados para datos y carga
   const [categorias, setCategorias] = useState([])
   const [productos, setProductos] = useState([])
@@ -23,13 +26,15 @@ const ProductoForm = ({ producto, onSave, onClose }) => {
   })
   const [error, setError] = useState(null)
 
+
+  
   // Cargar datos iniciales
   useEffect(() => {
     const cargarDatosIniciales = async () => {
       try {
-        setLoading(prev => ({...prev, categorias: true, productos: true}))
+        setLoading(prev => ({ ...prev, categorias: true, productos: true }))
         setError(null)
-        
+
         // Cargar categorías y productos en paralelo
         const [resCategorias, resProductos] = await Promise.all([
           fetchCategorias(),
@@ -42,7 +47,7 @@ const ProductoForm = ({ producto, onSave, onClose }) => {
         console.error("Error al cargar datos iniciales:", err)
         setError("Error al cargar datos necesarios")
       } finally {
-        setLoading(prev => ({...prev, categorias: false, productos: false}))
+        setLoading(prev => ({ ...prev, categorias: false, productos: false }))
       }
     }
 
@@ -52,8 +57,8 @@ const ProductoForm = ({ producto, onSave, onClose }) => {
   // Validar nombre único
   const validarNombreUnico = (nombre) => {
     return !productos.some(
-      prod => prod.nombre.toLowerCase() === nombre.toLowerCase() && 
-             (!producto || prod._id !== producto._id)
+      prod => prod.nombre.toLowerCase() === nombre.toLowerCase() &&
+        (!producto || prod._id !== producto._id)
     )
   }
 
@@ -62,10 +67,12 @@ const ProductoForm = ({ producto, onSave, onClose }) => {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'precio' ? parseFloat(value) || 0 : value
+      [name]: name === 'precio' || name === 'cantidad' || name === 'Id_Categoria'
+        ? parseInt(value) || 0
+        : value
     }))
   }
-
+  
   // Enviar formulario
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -87,32 +94,38 @@ const ProductoForm = ({ producto, onSave, onClose }) => {
       return
     }
 
-    if (!formData.categoriaId) {
+    if (!formData.Id_Categoria) {
       setError("Debe seleccionar una categoría")
       return
     }
 
     try {
-      setLoading(prev => ({...prev, submit: true}))
-      
+      setLoading(prev => ({ ...prev, submit: true }))
+
       const productoData = {
         nombre: formData.nombre.trim(),
         precio: formData.precio,
-        categoria: formData.categoriaId
-      }
-
-      if (producto) {
-        await actualizarProducto(producto._id, productoData)
-      } else {
-        await crearProducto(productoData)
+        cantidad: parseInt(formData.cantidad),
+        descripcion: formData.descripcion?.trim(),
+        estado: formData.estado,
+        Id_Categoria: formData.Id_Categoria  
       }
       
-      onSave() // Notificar éxito
-    } catch (err) {
-      console.error("Error al guardar producto:", err)
-      setError(err.response?.data?.message || "Error al guardar el producto")
-    } finally {
-      setLoading(prev => ({...prev, submit: false}))
+
+      if (producto) {
+        await actualizarProducto(producto.id, productoData)
+        console.log("DATOS QUE LLEGAN AL EDITAR",producto.id,productoData);
+
+      } else {
+        await crearProducto(productoData)
+        console.log("DATOS QUE LLEGAN",productoData);
+        
+      }
+
+      onSave()
+    } catch (error) {
+      console.error("Error al guardar producto:", error)
+      setError(error.response?.data?.message || "Error al guardar el producto")
     }
   }
 
@@ -148,66 +161,96 @@ const ProductoForm = ({ producto, onSave, onClose }) => {
       {/* Formulario */}
       {!(loading.categorias || loading.productos) && (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <FormField
-            label="Nombre"
-            name="nombre"
-            value={formData.nombre}
-            onChange={handleChange}
-            required
-            disabled={loading.submit}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              label="Nombre"
+              name="nombre"
+              value={formData.nombre}
+              onChange={handleChange}
+              required
+              disabled={loading.submit}
+            />
 
-          <FormField
-            label="Precio"
-            type="number"
-            name="precio"
-            value={formData.precio}
-            onChange={handleChange}
-            min="0.01"
-            step="0.01"
-            required
-            disabled={loading.submit}
-          />
+            <FormField
+              label="Precio"
+              type="number"
+              name="precio"
+              value={formData.precio}
+              onChange={handleChange}
+              min="0.01"
+              step="0.01"
+              required
+              disabled={loading.submit}
+            />
 
-          <SelectField
-            label="Categoría"
-            name="categoriaId"
-            value={formData.categoriaId}
-            onChange={handleChange}
-            options={[
-              { value: "", label: "Seleccione una categoría", disabled: true },
-              ...categorias.map(cat => ({
-                value: cat._id,
-                label: cat.nombre
-              }))
-            ]}
-            required
-            disabled={loading.submit}
-          />
+            <FormField
+              label="Cantidad"
+              type="number"
+              name="cantidad"
+              value={formData.cantidad}
+              onChange={handleChange}
+              min="0.01"
+              step="0.01"
+              required
+              disabled={loading.submit}
+            />
 
+            <SelectField
+              label="Estado"
+              name="estado"
+              value={formData.estado}
+              onChange={handleChange}
+              options={[
+                { value: "activo", label: "Activo" },
+                { value: "inactivo", label: "Inactivo" }
+              ]}
+              required
+              disabled={loading.submit}
+            />
+
+            <SelectField
+              label="Categoría"
+              name="Id_Categoria"  
+              value={formData.Id_Categoria}
+              onChange={handleChange}
+              options={[
+                { value: "", label: "Seleccione una categoría", disabled: true },
+                ...categorias.map(cat => ({
+                  value: cat.id,
+                  label: cat.nombre
+                }))
+              ]}
+              required
+              disabled={loading.submit}
+            />
+
+            {/* Descripción ocupa ambas columnas */}
+            <div className="md:col-span-2">
+              <TextAreaField
+                label="Descripción"
+                name="descripcion"
+                value={formData.descripcion}
+                onChange={handleChange}
+                required={false}
+                disabled={loading.submit}
+              />
+            </div>
+          </div>
+
+          {/* Botones */}
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                loading.submit
-                  ? "bg-orange-700 cursor-not-allowed"
-                  : "bg-orange-600 hover:bg-orange-700"
-              } text-white`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${loading.submit
+                ? "bg-orange-700 cursor-not-allowed"
+                : "bg-orange-600 hover:bg-orange-700"
+                } text-white`}
               disabled={loading.submit}
             >
-              {loading.submit ? (
-                <>
-                  <Loader2 className="animate-spin h-5 w-5" />
-                  Guardando...
-                </>
-              ) : (
-                <>
-                  <Save size={18} />
-                  Guardar
-                </>
-              )}
+              <Save size={18} />
+              Guardar
             </button>
-            
+
             <button
               type="button"
               onClick={onClose}
